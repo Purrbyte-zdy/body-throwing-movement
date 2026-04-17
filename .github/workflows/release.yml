@@ -1,0 +1,92 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            archive: tar.gz
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            archive: zip
+          - os: macos-latest
+            target: x86_64-apple-darwin
+            archive: tar.gz
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+
+      - name: Build
+        run: cargo build --release --target ${{ matrix.target }}
+
+      - name: Package (unix)
+        if: matrix.archive == 'tar.gz'
+        shell: bash
+        run: |
+          set -eux
+          bin="target/${{ matrix.target }}/release/body-throwing-movement"
+          pkg="body-throwing-movement-${{ github.ref_name }}-${{ matrix.target }}"
+          mkdir "$pkg"
+          cp "$bin" "$pkg/"
+          cp README.md LICENSE "$pkg/"
+          tar -czf "$pkg.tar.gz" "$pkg"
+          sha256sum "$pkg.tar.gz" > "$pkg.tar.gz.sha256"
+
+      - name: Package (windows)
+        if: matrix.archive == 'zip'
+        shell: pwsh
+        run: |
+          $bin = "target/${{ matrix.target }}/release/body-throwing-movement.exe"
+          $pkg = "body-throwing-movement-${{ github.ref_name }}-${{ matrix.target }}"
+          New-Item -ItemType Directory -Path $pkg | Out-Null
+          Copy-Item $bin "$pkg/"
+          Copy-Item README.md "$pkg/"
+          Copy-Item LICENSE "$pkg/"
+          Compress-Archive -Path $pkg -DestinationPath "$pkg.zip"
+          (Get-FileHash "$pkg.zip" -Algorithm SHA256).Hash + "  " + "$pkg.zip" | Out-File "$pkg.zip.sha256" -Encoding ascii
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-${{ matrix.target }}
+          path: |
+            body-throwing-movement-${{ github.ref_name }}-${{ matrix.target }}.tar.gz
+            body-throwing-movement-${{ github.ref_name }}-${{ matrix.target }}.tar.gz.sha256
+            body-throwing-movement-${{ github.ref_name }}-${{ matrix.target }}.zip
+            body-throwing-movement-${{ github.ref_name }}-${{ matrix.target }}.zip.sha256
+          if-no-files-found: ignore
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/**
+

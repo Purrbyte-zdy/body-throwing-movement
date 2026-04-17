@@ -1,0 +1,24 @@
+[package]
+name = "body-throwing-movement"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+description = "CLI for solving projectile launch speed over feasible angles"
+
+[lib]
+name = "body_throwing_movement"
+path = "src/lib.rs"
+
+[[bin]]
+name = "body-throwing-movement"
+path = "src/main.rs"
+
+[dependencies]
+clap = { version = "4.5.38", features = ["derive"] }
+plotters = "0.3.7"
+thiserror = "2.0.12"
+
+[dev-dependencies]
+assert_cmd = "2.0.16"
+predicates = "3.1.3"
+
