@@ -32,7 +32,9 @@ pub fn solve(params: &InputParams) -> Result<SolveResult, AppError> {
 
     let mut angle = params.angle_min_deg;
     while angle <= params.angle_max_deg + 1e-12 {
-        if let Some(speed) = required_speed_for_angle(params.distance, delta_h, angle, params.gravity) {
+        if let Some(speed) =
+            required_speed_for_angle(params.distance, delta_h, angle, params.gravity)
+        {
             points.push(SolutionPoint {
                 angle_deg: angle,
                 speed_mps: speed,
@@ -145,5 +147,3 @@ mod tests {
         assert!(result.slowest.speed_mps <= result.fastest.speed_mps);
     }
 }
-
-

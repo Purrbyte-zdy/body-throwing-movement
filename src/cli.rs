@@ -20,13 +20,21 @@ pub struct Cli {
     #[arg(long, default_value_t = 1.0, help = "Minimum scanned angle in degrees")]
     pub angle_min: f64,
 
-    #[arg(long, default_value_t = 89.0, help = "Maximum scanned angle in degrees")]
+    #[arg(
+        long,
+        default_value_t = 89.0,
+        help = "Maximum scanned angle in degrees"
+    )]
     pub angle_max: f64,
 
     #[arg(long, default_value_t = 0.5, help = "Angle step in degrees")]
     pub angle_step: f64,
 
-    #[arg(long, default_value_t = 9.80665, help = "Gravitational acceleration in m/s^2")]
+    #[arg(
+        long,
+        default_value_t = 9.80665,
+        help = "Gravitational acceleration in m/s^2"
+    )]
     pub gravity: f64,
 
     #[arg(long, help = "Optional CSV output path")]
@@ -35,4 +43,3 @@ pub struct Cli {
     #[arg(long, help = "Optional chart output path (.png or .svg)")]
     pub plot_out: Option<String>,
 }
-

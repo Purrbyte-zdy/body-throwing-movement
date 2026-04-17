@@ -13,10 +13,13 @@ pub fn render_stdout(result: &SolveResult) -> String {
     out.push_str("------------+----------------------\n");
 
     for point in &result.points {
-        out.push_str(&format!("{:>10.2} | {:>20.4}\n", point.angle_deg, point.speed_mps));
+        out.push_str(&format!(
+            "{:>10.2} | {:>20.4}\n",
+            point.angle_deg, point.speed_mps
+        ));
     }
 
-    out.push_str("\n");
+    out.push('\n');
     out.push_str(&format!(
         "Slowest launch: angle = {:.2} deg, speed = {:.4} m/s\n",
         result.slowest.angle_deg, result.slowest.speed_mps
@@ -61,5 +64,3 @@ pub fn write_csv(path: &str, points: &[SolutionPoint]) -> Result<(), AppError> {
 
     Ok(())
 }
-
-

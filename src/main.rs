@@ -41,4 +41,3 @@ fn run() -> Result<(), body_throwing_movement::error::AppError> {
 
     Ok(())
 }
-

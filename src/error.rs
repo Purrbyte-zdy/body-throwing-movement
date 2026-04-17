@@ -31,4 +31,3 @@ pub enum AppError {
     #[error("failed to render plot to {path}: {reason}")]
     PlotWrite { path: String, reason: String },
 }
-

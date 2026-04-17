@@ -138,5 +138,3 @@ fn draw_chart<DB: DrawingBackend>(
 
     Ok(())
 }
-
-

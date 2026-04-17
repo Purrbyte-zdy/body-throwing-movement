@@ -24,4 +24,3 @@ fn cli_prints_extreme_speeds() {
         .stdout(contains("Slowest launch"))
         .stdout(contains("Fastest launch"));
 }
-
