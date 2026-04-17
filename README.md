@@ -1,40 +1,40 @@
 # body-throwing-movement
 
-A production-style Rust CLI for projectile motion analysis.
+一个工程化的 Rust 命令行工具，用于抛体运动分析。
 
-Given:
-- launch height (`h0`)
-- landing height (`h1`)
-- horizontal distance (`d`)
+给定以下参数：
+- 出手高度（`h_0`）
+- 落点高度（`h_1`）
+- 水平距离（`d`）
 
-the tool scans a configurable angle range and computes the required launch speed for each feasible angle using classical mechanics.
+程序会在可配置的角度范围内扫描，并基于经典力学计算每个**可行角度**对应的所需出手速度。
 
-It also reports:
-- the **slowest feasible launch speed** and its angle
-- the **fastest feasible launch speed** and its angle
+同时输出：
+- **最慢可行出手速度**及其角度
+- **最快可行出手速度**及其角度
 
-## Physics model
+## 物理模型
 
-For each angle `theta`, required launch speed is:
+对每一个发射角 $\theta$，所需出手速度为：
 
-```text
-v0 = sqrt(g * d^2 / (2 * cos(theta)^2 * (d * tan(theta) - (h1 - h0))))
-```
+$$
+v_0 = \sqrt{\frac{g d^2}{2\cos^2(\theta)\left(d\tan(\theta) - (h_1 - h_0)\right)}}
+$$
 
-Only angles with a valid positive denominator are feasible.
+仅当分母为正且数值有效时，该角度才是可行解。
 
-## Features
+## 功能特性
 
-- Rust CLI with clear argument validation
-- Feasible angle-speed table output
-- Slowest/fastest speed summary
-- Optional CSV export
-- Optional speed-vs-angle plot export (`.png` or `.svg`)
-- Unit tests + integration test
-- CI checks (fmt, clippy, tests, release build)
-- Release workflow with multi-platform packaged binaries
+- 使用 Rust 编写的 CLI，参数校验清晰
+- 输出所有可行“角度-速度”结果表
+- 自动汇总最慢/最快速度与对应角度
+- 支持可选 CSV 导出
+- 支持可选速度-角度可视化导出（`.png` 或 `.svg`）
+- 包含单元测试与集成测试
+- CI 检查（`fmt`、`clippy`、`test`、`release build`）
+- Release 工作流支持多平台二进制打包
 
-## Quick start
+## 快速开始
 
 ```bash
 cargo run -- \
@@ -48,40 +48,40 @@ cargo run -- \
   --plot-out output/speed-angle.png
 ```
 
-## CLI options
+## CLI 参数说明
 
 ```text
---launch-height   Launch height in meters
---landing-height  Landing height in meters
---distance        Horizontal distance in meters
---angle-min       Minimum scanned angle in degrees (default: 1)
---angle-max       Maximum scanned angle in degrees (default: 89)
---angle-step      Angle step in degrees (default: 0.5)
---gravity         Gravitational acceleration in m/s^2 (default: 9.80665)
---csv-out         Optional CSV output path
---plot-out        Optional chart output path (.png or .svg)
+--launch-height   出手高度（米）
+--landing-height  落点高度（米）
+--distance        水平距离（米）
+--angle-min       扫描最小角度（度，默认: 1）
+--angle-max       扫描最大角度（度，默认: 89）
+--angle-step      角度步长（度，默认: 0.5）
+--gravity         重力加速度（m/s^2，默认: 9.80665）
+--csv-out         可选 CSV 输出路径
+--plot-out        可选图表输出路径（.png 或 .svg）
 ```
 
-## Project structure
+## 项目结构
 
 ```text
 src/
-  cli.rs                  # CLI arguments
-  error.rs                # Error types
-  main.rs                 # Program entry
+  cli.rs                  # CLI 参数定义
+  error.rs                # 错误类型
+  main.rs                 # 程序入口
   physics/
-    ballistics.rs         # Projectile solver
+    ballistics.rs         # 抛体求解核心
   output/
-    table.rs              # Console + CSV output
-    plot.rs               # PNG/SVG visualization
+    table.rs              # 控制台输出与 CSV 导出
+    plot.rs               # PNG/SVG 可视化
 tests/
-  cli.rs                  # Integration test
+  cli.rs                  # 集成测试
 .github/workflows/
-  ci.yml                  # CI pipeline
-  release.yml             # Tagged release packaging
+  ci.yml                  # CI 流水线
+  release.yml             # 基于 tag 的发布打包
 ```
 
-## Development
+## 开发命令
 
 ```bash
 cargo fmt --all
@@ -92,13 +92,13 @@ cargo run -- --help
 
 ## CI/CD
 
-- `CI` workflow runs on push/PR and performs:
-  - formatting check
-  - clippy linting
-  - tests
-  - release build sanity check
-- `Release` workflow runs on tags like `v0.1.0` and:
-  - builds Linux/macOS/Windows binaries
-  - packages archives with README and LICENSE
-  - generates SHA256 checksums
-  - publishes files to GitHub Releases
+- `CI` 工作流在 push/PR 时执行：
+  - 格式检查
+  - clippy 静态检查
+  - 测试
+  - release 构建健康检查
+- `Release` 工作流在 `v0.1.0` 这类 tag 推送时执行：
+  - 构建 Linux/macOS/Windows 二进制
+  - 打包并附带 README 与 LICENSE
+  - 生成 SHA256 校验文件
+  - 发布到 GitHub Releases
