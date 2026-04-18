@@ -4,12 +4,42 @@ on:
   push:
     tags:
       - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing git tag to release (for example: v0.1.0)"
+        required: true
+        type: string
 
 permissions:
   contents: write
 
 jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      release_tag: ${{ steps.resolve.outputs.release_tag }}
+    steps:
+      - name: Resolve release tag
+        id: resolve
+        run: |
+          set -euo pipefail
+
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            tag="${{ inputs.tag }}"
+          else
+            tag="${{ github.ref_name }}"
+          fi
+
+          if [[ ! "$tag" =~ ^v.+$ ]]; then
+            echo "Tag must start with 'v'. Got: $tag" >&2
+            exit 1
+          fi
+
+          echo "release_tag=$tag" >> "$GITHUB_OUTPUT"
+
   build:
+    needs: prepare
     strategy:
       matrix:
         include:
@@ -27,6 +57,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.prepare.outputs.release_tag }}
 
       - name: Install Linux system dependencies
         if: runner.os == 'Linux'
@@ -51,7 +83,7 @@ jobs:
         run: |
           set -eux
           bin="target/${{ matrix.target }}/release/body-throwing-movement"
-          pkg="body-throwing-movement-${{ github.ref_name }}-${{ matrix.target }}"
+          pkg="body-throwing-movement-${{ needs.prepare.outputs.release_tag }}-${{ matrix.target }}"
           mkdir "$pkg"
           cp "$bin" "$pkg/"
           cp README.md LICENSE "$pkg/"
@@ -63,7 +95,7 @@ jobs:
         shell: pwsh
         run: |
           $bin = "target/${{ matrix.target }}/release/body-throwing-movement.exe"
-          $pkg = "body-throwing-movement-${{ github.ref_name }}-${{ matrix.target }}"
+          $pkg = "body-throwing-movement-${{ needs.prepare.outputs.release_tag }}-${{ matrix.target }}"
           New-Item -ItemType Directory -Path $pkg | Out-Null
           Copy-Item $bin "$pkg/"
           Copy-Item README.md "$pkg/"
@@ -76,14 +108,14 @@ jobs:
         with:
           name: release-${{ matrix.target }}
           path: |
-            body-throwing-movement-${{ github.ref_name }}-${{ matrix.target }}.tar.gz
-            body-throwing-movement-${{ github.ref_name }}-${{ matrix.target }}.tar.gz.sha256
-            body-throwing-movement-${{ github.ref_name }}-${{ matrix.target }}.zip
-            body-throwing-movement-${{ github.ref_name }}-${{ matrix.target }}.zip.sha256
+            body-throwing-movement-${{ needs.prepare.outputs.release_tag }}-${{ matrix.target }}.tar.gz
+            body-throwing-movement-${{ needs.prepare.outputs.release_tag }}-${{ matrix.target }}.tar.gz.sha256
+            body-throwing-movement-${{ needs.prepare.outputs.release_tag }}-${{ matrix.target }}.zip
+            body-throwing-movement-${{ needs.prepare.outputs.release_tag }}-${{ matrix.target }}.zip.sha256
           if-no-files-found: ignore
 
   publish:
-    needs: build
+    needs: [prepare, build]
     runs-on: ubuntu-latest
     steps:
       - name: Download build artifacts
@@ -94,5 +126,7 @@ jobs:
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ needs.prepare.outputs.release_tag }}
+          name: ${{ needs.prepare.outputs.release_tag }}
           files: dist/**
 
